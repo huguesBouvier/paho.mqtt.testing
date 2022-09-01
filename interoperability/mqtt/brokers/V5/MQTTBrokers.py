@@ -60,12 +60,12 @@ def respond(sock, packet, maximumPacketSize=500):
   else:
     if mybroker.options["visual"]:
       try:
-        data = {"direction" : "StoC", "socket" : sock.fileno(), 
-            "clientid":  mybroker.clients[sock].id if sock in mybroker.clients.keys() else "", 
+        data = {"direction" : "StoC", "socket" : sock.fileno(),
+            "clientid":  mybroker.clients[sock].id if sock in mybroker.clients.keys() else "",
             "packet" : packet.json() }
         # for any byte arrays, use base64 in json
         databytes = bytes(json.dumps(data), 'utf-8')
-        mybroker.broker.publish('$internal', '$SYS/clients-packets', databytes, 
+        mybroker.broker.publish('$internal', '$SYS/clients-packets', databytes,
                 0, 0, None, time.monotonic())
       except:
         traceback.print_exc()
@@ -175,9 +175,9 @@ class MQTTClients:
     logger.info("[MQTT-3.2.3-3] topic name must match the subscription's topic filter")
     # Topic alias
     if self.topicAliasMaximum == 0:
-      logger.info("[MQTT5-3.1.2-27] if topic alias is 0, no topic aliases must be sent") 
+      logger.info("[MQTT5-3.1.2-27] if topic alias is 0, no topic aliases must be sent")
     if len(self.outgoingTopicNamesToAliases) < self.topicAliasMaximum and not topic in self.outgoingTopicNamesToAliases:
-      logger.info("[MQTT5-3.1.2-26] Server must not send topic alias > max") 
+      logger.info("[MQTT5-3.1.2-26] Server must not send topic alias > max")
       self.outgoingTopicNamesToAliases.append(topic)       # add alias
       pub.topicName = topic # include topic name as well as alias first time
     if topic in self.outgoingTopicNamesToAliases:
@@ -353,7 +353,7 @@ class MQTTBrokers:
             if clientid == "" and hasattr(packet, "ClientIdentifier"):
               clientid = packet.ClientIdentifier
             try:
-              data = {"direction" : "CtoS", "socket" : sock.fileno(), 
+              data = {"direction" : "CtoS", "socket" : sock.fileno(),
                     "clientid":  clientid, "packet" : packet.json() }
               databytes = bytes(json.dumps(data), 'utf-8')
               self.broker.publish('$internal', '$SYS/clients-packets', databytes,
@@ -602,7 +602,7 @@ class MQTTBrokers:
         self.handleBehaviourPublish(sock, packet.topicName, packet.data)
     else:
         if packet.fh.QoS > 0 and len(self.clients[sock].inbound) >= self.options["receiveMaximum"]:
-          self.disconnect(sock, reasonCode="Receive maximum of %d exceeded: %d" % 
+          self.disconnect(sock, reasonCode="Receive maximum of %d exceeded: %d" %
              (self.options["receiveMaximum"], len(self.clients[sock].inbound)+1), sendWillMessage=True)
           return
         if hasattr(packet.properties, "UserProperty") and len(packet.properties.UserProperty) > 1:

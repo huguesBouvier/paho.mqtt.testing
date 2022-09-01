@@ -103,7 +103,7 @@ class Client:
 
 
   def connect(self, host="localhost", port=1883, cleanstart=True, keepalive=0, newsocket=True, protocolName=None,
-              willFlag=False, willTopic=None, willMessage=None, willQoS=2, willRetain=False, username=None, password=None,
+              willFlag=False, willTopic=None, willMessage=None, willQoS=1, willRetain=False, username=None, password=None,
               properties=None, willProperties=None):
     if newsocket:
       try:
