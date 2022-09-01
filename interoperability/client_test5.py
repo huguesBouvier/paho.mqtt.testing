@@ -132,10 +132,9 @@ class Test(unittest.TestCase):
       aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
       aclient.publish(topics[0], b"qos 0")
       aclient.publish(topics[0], b"qos 1", 1)
-      aclient.publish(topics[0], b"qos 2", 2)
       time.sleep(2)
       aclient.disconnect()
-      self.assertEqual(len(callback.messages), 3)
+      self.assertEqual(len(callback.messages), 1)
 
       with self.assertRaises(Exception):
         aclient.connect(host=host, port=port)
@@ -311,7 +310,7 @@ class Test(unittest.TestCase):
         bclient.subscribe([wildtopics[6]], [MQTTV5.SubscribeOptions(2)])
         bclient.pause() # stops responding to incoming publishes
         bclient.publish(topics[1], b"", 1, retained=False)
-        bclient.publish(topics[3], b"", 2, retained=False)
+        bclient.publish(topics[3], b"", 1, retained=False)
         time.sleep(1)
         bclient.disconnect()
         assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
@@ -1012,7 +1011,7 @@ class Test(unittest.TestCase):
       receiver = testclient.getReceiver()
 
       # send number of messages to exceed receive maximum
-      qos = 2
+      qos = 1
       pubs = 0
       for i in range(1, serverReceiveMaximum + 2):
         testclient.publish(topics[0], "message %d" % i, qos)
@@ -1203,7 +1202,7 @@ if __name__ == "__main__":
   print(wildtopics)
   nosubscribe_topics = ("test/nosubscribe",)
 
-  host = "localhost"
+  host = "frontend1-0.frontend1.default.svc.cluster.local"
   port = 1883
   for o, a in opts:
     if o in ("--help"):
