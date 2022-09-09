@@ -452,25 +452,25 @@ class Test(unittest.TestCase):
       self.assertEqual(connack.sessionPresent, False)
       aclient.disconnect()
 
-    def test_user_properties(self):
-      callback.clear()
-      aclient.connect(host=host, port=port, cleanstart=True)
-      aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
-      publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
-      publish_properties.UserProperty = ("a", "2")
-      publish_properties.UserProperty = ("c", "3")
-      aclient.publish(topics[0], b"", 0, retained=False, properties=publish_properties)
-      aclient.publish(topics[0], b"", 1, retained=False, properties=publish_properties)
-      while len(callback.messages) < 2:
-        time.sleep(.1)
-      aclient.disconnect()
-      self.assertEqual(len(callback.messages), 2, callback.messages)
-      userprops = callback.messages[0][5].UserProperty
-      self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
-      userprops = callback.messages[1][5].UserProperty
-      self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
-      qoss = [callback.messages[i][2] for i in range(2)]
-      self.assertTrue(1 in qoss and 0 in qoss, qoss)
+#    def test_user_properties(self):
+#      callback.clear()
+#      aclient.connect(host=host, port=port, cleanstart=True)
+#      aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
+#      publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
+#      publish_properties.UserProperty = ("a", "2")
+#      publish_properties.UserProperty = ("c", "3")
+#      aclient.publish(topics[0], b"", 0, retained=False, properties=publish_properties)
+#      aclient.publish(topics[0], b"", 1, retained=False, properties=publish_properties)
+#      while len(callback.messages) < 2:
+#        time.sleep(.1)
+#      aclient.disconnect()
+#      self.assertEqual(len(callback.messages), 2, callback.messages)
+#      userprops = callback.messages[0][5].UserProperty
+#      self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
+#      userprops = callback.messages[1][5].UserProperty
+#      self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
+#      qoss = [callback.messages[i][2] for i in range(2)]
+#      self.assertTrue(1 in qoss and 0 in qoss, qoss)
 
 #def test_payload_format(self):
 # callback.clear()
