@@ -114,14 +114,15 @@ class Test(unittest.TestCase):
       try:
         aclient.connect(host=host, port=port)
         aclient.disconnect()
-        time.sleep(10)
         connack = aclient.connect(host=host, port=port)
         assert connack.flags == 0x00 # Session present
         aclient.subscribe([topics[0]], [2])
+        time.sleep(.1)
         aclient.publish(topics[0], b"qos 0")
         aclient.publish(topics[0], b"qos 1", 1)
         time.sleep(2)
         aclient.disconnect()
+        time.sleep(.1)
         self.assertEqual(len(callback.messages), 2)
       except:
         traceback.print_exc()
