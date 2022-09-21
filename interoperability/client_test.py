@@ -142,103 +142,103 @@ class Test(unittest.TestCase):
       self.assertEqual(succeeded, True)
       return succeeded
 
-    def test_retained_messages(self):
-      qos0topic="fromb/qos 0"
-      qos1topic="fromb/qos 1"
-      wildcardtopic="fromb/+"
-      print("Retained message test starting")
-      succeeded = False
-      try:
-        # retained messages
-        callback.clear()
-        connack = aclient.connect(host=host, port=port, cleansession=True)
-        assert connack.flags == 0x00 # Session present
-        aclient.publish(topics[1], b"qos 0", 0, retained=True)
-        aclient.publish(topics[2], b"qos 1", 1, retained=True)
-        time.sleep(1)
-        aclient.subscribe([wildtopics[5]], [2])
-        time.sleep(1)
-        aclient.disconnect()
-
-        assert len(callback.messages) == 2
-
-        # clear retained messages
-        callback.clear()
-        connack = aclient.connect(host=host, port=port, cleansession=True)
-        assert connack.flags == 0x00 # Session present
-        aclient.publish(topics[1], b"", 0, retained=True)
-        aclient.publish(topics[2], b"", 1, retained=True)
-        time.sleep(1) # wait for QoS 2 exchange to be completed
-        aclient.subscribe([wildtopics[5]], [2])
-        time.sleep(1)
-        aclient.disconnect()
-
-        assert len(callback.messages) == 0, "callback messages is %s" % callback.messages
-        succeeded = True
-      except:
-        traceback.print_exc()
-      print("Retained message test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-
-    # 0 length clientid
-    def test_zero_length_clientid(self):
-      print("Zero length clientid test starting")
-      succeeded = True
-      try:
-        client0 = mqtt_client.Client("")
-        fails = False
-        try:
-          client0.connect(host=host, port=port, cleansession=False) # should be rejected
-        except:
-          fails = True
-        self.assertEqual(fails, True)
-        fails = False
-        try:
-          client0.connect(host=host, port=port, cleansession=True) # should work
-        except:
-          fails = True
-        self.assertEqual(fails, False)
-        client0.disconnect()
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Zero length clientid test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-    def test_offline_message_queueing(self):
-      succeeded = True
-      try:
-        # message queueing for offline clients
-        callback.clear()
-
-        connack = aclient.connect(host=host, port=port, cleansession=False)
-        aclient.subscribe([wildtopics[5]], [2])
-        aclient.disconnect()
-
-        connack = bclient.connect(host=host, port=port, cleansession=True)
-        assert connack.flags == 0x00 # Session present
-        bclient.publish(topics[1], b"qos 0", 0)
-        bclient.publish(topics[2], b"qos 1", 1)
-        time.sleep(2)
-        bclient.disconnect()
-
-        connack = aclient.connect(host=host, port=port, cleansession=False)
-        assert connack.flags == 0x01 # Session present
-        time.sleep(2)
-        aclient.disconnect()
-
-        assert len(callback.messages) in [2, 3], callback.messages
-        print("This server %s queueing QoS 0 messages for offline clients" % \
-            ("is" if len(callback.messages) == 2 else "is not"))
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Offline message queueing test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
+#    def test_retained_messages(self):
+#      qos0topic="fromb/qos 0"
+#      qos1topic="fromb/qos 1"
+#      wildcardtopic="fromb/+"
+#      print("Retained message test starting")
+#      succeeded = False
+#      try:
+#        # retained messages
+#        callback.clear()
+#        connack = aclient.connect(host=host, port=port, cleansession=True)
+#        assert connack.flags == 0x00 # Session present
+#        aclient.publish(topics[1], b"qos 0", 0, retained=True)
+#        aclient.publish(topics[2], b"qos 1", 1, retained=True)
+#        time.sleep(1)
+#        aclient.subscribe([wildtopics[5]], [2])
+#        time.sleep(1)
+#        aclient.disconnect()
+#
+#        assert len(callback.messages) == 2
+#
+#        # clear retained messages
+#        callback.clear()
+#        connack = aclient.connect(host=host, port=port, cleansession=True)
+#        assert connack.flags == 0x00 # Session present
+#        aclient.publish(topics[1], b"", 0, retained=True)
+#        aclient.publish(topics[2], b"", 1, retained=True)
+#        time.sleep(1) # wait for QoS 2 exchange to be completed
+#        aclient.subscribe([wildtopics[5]], [2])
+#        time.sleep(1)
+#        aclient.disconnect()
+#
+#        assert len(callback.messages) == 0, "callback messages is %s" % callback.messages
+#        succeeded = True
+#      except:
+#        traceback.print_exc()
+#      print("Retained message test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
+#
+#
+#    # 0 length clientid
+#    def test_zero_length_clientid(self):
+#      print("Zero length clientid test starting")
+#      succeeded = True
+#      try:
+#        client0 = mqtt_client.Client("")
+#        fails = False
+#        try:
+#          client0.connect(host=host, port=port, cleansession=False) # should be rejected
+#        except:
+#          fails = True
+#        self.assertEqual(fails, True)
+#        fails = False
+#        try:
+#          client0.connect(host=host, port=port, cleansession=True) # should work
+#        except:
+#          fails = True
+#        self.assertEqual(fails, False)
+#        client0.disconnect()
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Zero length clientid test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
+#
+#    def test_offline_message_queueing(self):
+#      succeeded = True
+#      try:
+#        # message queueing for offline clients
+#        callback.clear()
+#
+#        connack = aclient.connect(host=host, port=port, cleansession=False)
+#        aclient.subscribe([wildtopics[5]], [2])
+#        aclient.disconnect()
+#
+#        connack = bclient.connect(host=host, port=port, cleansession=True)
+#        assert connack.flags == 0x00 # Session present
+#        bclient.publish(topics[1], b"qos 0", 0)
+#        bclient.publish(topics[2], b"qos 1", 1)
+#        time.sleep(2)
+#        bclient.disconnect()
+#
+#        connack = aclient.connect(host=host, port=port, cleansession=False)
+#        assert connack.flags == 0x01 # Session present
+#        time.sleep(2)
+#        aclient.disconnect()
+#
+#        assert len(callback.messages) in [2, 3], callback.messages
+#        print("This server %s queueing QoS 0 messages for offline clients" % \
+#            ("is" if len(callback.messages) == 2 else "is not"))
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Offline message queueing test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
 
 #    def test_overlapping_subscriptions(self):
 #      # overlapping subscriptions. When there is more than one matching subscription for the same client for a topic,
