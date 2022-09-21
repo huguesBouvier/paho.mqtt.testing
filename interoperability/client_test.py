@@ -114,9 +114,7 @@ class Test(unittest.TestCase):
       try:
         aclient.connect(host=host, port=port)
         aclient.disconnect()
-        time.sleep(1)
-        aclient = mqtt_client.Client("myclientid".encode("utf-8"))
-        aclient.registerCallback(callback)
+        time.sleep(10)
         connack = aclient.connect(host=host, port=port)
         assert connack.flags == 0x00 # Session present
         aclient.subscribe([topics[0]], [2])
