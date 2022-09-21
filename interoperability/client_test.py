@@ -270,29 +270,6 @@ class Test(unittest.TestCase):
       self.assertEqual(succeeded, True)
       return succeeded
 
-
-    def test_keepalive(self):
-      # keepalive processing.  We should be kicked off by the server if we don't send or receive any data, and don't send
-      # any pings either.
-      print("Keepalive test starting")
-      succeeded = True
-      try:
-        callback2.clear()
-        aclient.connect(host=host, port=port, cleansession=True, keepalive=5, willFlag=True,
-              willTopic=topics[4], willMessage=b"keepalive expiry")
-        bclient.connect(host=host, port=port, cleansession=True, keepalive=0)
-        bclient.subscribe([topics[4]], [2])
-        time.sleep(15)
-        bclient.disconnect()
-        assert len(callback2.messages) == 1, "length should be 1: %s" % callback2.messages # should have the will message
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Keepalive test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-
     def test_redelivery_on_reconnect(self):
       # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
       # appropriate MQTT packets
@@ -368,6 +345,27 @@ class Test(unittest.TestCase):
       print("unsubscribe tests", "succeeded" if succeeded else "failed")
       return succeeded
 
+
+#    def test_keepalive(self):
+#      # keepalive processing.  We should be kicked off by the server if we don't send or receive any data, and don't send
+#      # any pings either.
+#      print("Keepalive test starting")
+#      succeeded = True
+#      try:
+#        callback2.clear()
+#        aclient.connect(host=host, port=port, cleansession=True, keepalive=5, willFlag=True,
+#              willTopic=topics[4], willMessage=b"keepalive expiry")
+#        bclient.connect(host=host, port=port, cleansession=True, keepalive=0)
+#        bclient.subscribe([topics[4]], [2])
+#        time.sleep(15)
+#        bclient.disconnect()
+#        assert len(callback2.messages) == 1, "length should be 1: %s" % callback2.messages # should have the will message
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Keepalive test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
 
 #    def test_dollar_topics(self):
 #      # $ topics. The specification says that a topic filter which starts with a wildcard does not match topic names that
