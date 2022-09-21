@@ -215,38 +215,66 @@ class Test(unittest.TestCase):
       print("Zero length clientid test", "succeeded" if succeeded else "failed")
       self.assertEqual(succeeded, True)
       return succeeded
-#
-#    def test_offline_message_queueing(self):
-#      succeeded = True
-#      try:
-#        # message queueing for offline clients
-#        callback.clear()
-#
-#        connack = aclient.connect(host=host, port=port, cleansession=False)
-#        aclient.subscribe([wildtopics[5]], [2])
-#        aclient.disconnect()
-#
-#        connack = bclient.connect(host=host, port=port, cleansession=True)
-#        assert connack.flags == 0x00 # Session present
-#        bclient.publish(topics[1], b"qos 0", 0)
-#        bclient.publish(topics[2], b"qos 1", 1)
-#        time.sleep(2)
-#        bclient.disconnect()
-#
-#        connack = aclient.connect(host=host, port=port, cleansession=False)
-#        assert connack.flags == 0x01 # Session present
-#        time.sleep(2)
-#        aclient.disconnect()
-#
-#        assert len(callback.messages) in [2, 3], callback.messages
-#        print("This server %s queueing QoS 0 messages for offline clients" % \
-#            ("is" if len(callback.messages) == 2 else "is not"))
-#      except:
-#        traceback.print_exc()
-#        succeeded = False
-#      print("Offline message queueing test", "succeeded" if succeeded else "failed")
-#      self.assertEqual(succeeded, True)
-#      return succeeded
+
+    def test_offline_message_queueing(self):
+      succeeded = True
+      try:
+        # message queueing for offline clients
+        callback.clear()
+
+        connack = aclient.connect(host=host, port=port, cleansession=False)
+        aclient.subscribe([wildtopics[5]], [2])
+        aclient.disconnect()
+
+        connack = bclient.connect(host=host, port=port, cleansession=True)
+        assert connack.flags == 0x00 # Session present
+        bclient.publish(topics[1], b"qos 0", 0)
+        bclient.publish(topics[2], b"qos 1", 1)
+        time.sleep(2)
+        bclient.disconnect()
+
+        connack = aclient.connect(host=host, port=port, cleansession=False)
+        assert connack.flags == 0x01 # Session present
+        time.sleep(2)
+        aclient.disconnect()
+
+        assert len(callback.messages) in [2, 3], callback.messages
+        print("This server %s queueing QoS 0 messages for offline clients" % \
+            ("is" if len(callback.messages) == 2 else "is not"))
+      except:
+        traceback.print_exc()
+        succeeded = False
+      print("Offline message queueing test", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
+
+
+    def test_redelivery_on_reconnect(self):
+      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
+      # appropriate MQTT packets
+      print("Redelivery on reconnect test starting")
+      succeeded = True
+      try:
+        callback.clear()
+        callback2.clear()
+        bclient.connect(host=host, port=port, cleansession=False)
+        bclient.subscribe([wildtopics[6]], [2])
+        bclient.pause() # stops responding to incoming publishes
+        bclient.publish(topics[1], b"", 1, retained=False)
+        time.sleep(1)
+        bclient.disconnect()
+        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
+        bclient.resume()
+        bclient.connect(host=host, port=port, cleansession=False)
+        time.sleep(3)
+        assert len(callback2.messages) == 1, "length should be 1: %s" % callback2.messages
+        bclient.disconnect()
+      except:
+        traceback.print_exc()
+        succeeded = False
+      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
 
 #    def test_overlapping_subscriptions(self):
 #      # overlapping subscriptions. When there is more than one matching subscription for the same client for a topic,
@@ -277,33 +305,6 @@ class Test(unittest.TestCase):
 #      self.assertEqual(succeeded, True)
 #      return succeeded
 #
-#    def test_redelivery_on_reconnect(self):
-#      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
-#      # appropriate MQTT packets
-#      print("Redelivery on reconnect test starting")
-#      succeeded = True
-#      try:
-#        callback.clear()
-#        callback2.clear()
-#        bclient.connect(host=host, port=port, cleansession=False)
-#        bclient.subscribe([wildtopics[6]], [2])
-#        bclient.pause() # stops responding to incoming publishes
-#        bclient.publish(topics[1], b"", 1, retained=False)
-#        bclient.publish(topics[3], b"", 2, retained=False)
-#        time.sleep(1)
-#        bclient.disconnect()
-#        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
-#        bclient.resume()
-#        bclient.connect(host=host, port=port, cleansession=False)
-#        time.sleep(3)
-#        assert len(callback2.messages) == 2, "length should be 2: %s" % callback2.messages
-#        bclient.disconnect()
-#      except:
-#        traceback.print_exc()
-#        succeeded = False
-#      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
-#      self.assertEqual(succeeded, True)
-#      return succeeded
 #
 #    def test_subscribe_failure(self):
 #      # Subscribe failure.  A new feature of MQTT 3.1.1 is the ability to send back negative reponses to subscribe
