@@ -259,13 +259,14 @@ class Test(unittest.TestCase):
         callback2.clear()
         bclient.connect(host=host, port=port, cleansession=False)
         time.sleep(1)
-        bclient.subscribe([wildtopics[6]], [2])
+        bclient.subscribe([topics[1]], [2])
         time.sleep(1)
         bclient.pause() # stops responding to incoming publishes
         bclient.publish(topics[1], b"", 1, retained=False)
         time.sleep(1)
         bclient.disconnect()
         assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
+        time.sleep(1)
         bclient.resume()
         bclient.connect(host=host, port=port, cleansession=False)
         time.sleep(3)
