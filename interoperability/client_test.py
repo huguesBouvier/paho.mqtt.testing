@@ -146,7 +146,6 @@ class Test(unittest.TestCase):
     def test_retained_messages(self):
       qos0topic="fromb/qos 0"
       qos1topic="fromb/qos 1"
-      qos2topic="fromb/qos2"
       wildcardtopic="fromb/+"
       print("Retained message test starting")
       succeeded = False
@@ -157,13 +156,12 @@ class Test(unittest.TestCase):
         assert connack.flags == 0x00 # Session present
         aclient.publish(topics[1], b"qos 0", 0, retained=True)
         aclient.publish(topics[2], b"qos 1", 1, retained=True)
-        aclient.publish(topics[3], b"qos 2", 2, retained=True)
         time.sleep(1)
         aclient.subscribe([wildtopics[5]], [2])
         time.sleep(1)
         aclient.disconnect()
 
-        assert len(callback.messages) == 3
+        assert len(callback.messages) == 2
 
         # clear retained messages
         callback.clear()
@@ -171,7 +169,6 @@ class Test(unittest.TestCase):
         assert connack.flags == 0x00 # Session present
         aclient.publish(topics[1], b"", 0, retained=True)
         aclient.publish(topics[2], b"", 1, retained=True)
-        aclient.publish(topics[3], b"", 2, retained=True)
         time.sleep(1) # wait for QoS 2 exchange to be completed
         aclient.subscribe([wildtopics[5]], [2])
         time.sleep(1)
@@ -185,28 +182,6 @@ class Test(unittest.TestCase):
       self.assertEqual(succeeded, True)
       return succeeded
 
-    def will_message_test(self):
-      # will messages
-      succeeded = True
-      callback2.clear()
-      assert len(callback2.messages) == 0, callback2.messages
-      try:
-        connack = aclient.connect(host=host, port=port, cleansession=True, willFlag=True,
-          willTopic=topics[2], willMessage=b"client not disconnected", keepalive=2)
-        assert connack.flags == 0x00 # Session present
-        connack = bclient.connect(host=host, port=port, cleansession=False)
-        bclient.subscribe([topics[2]], [2])
-        time.sleep(.1)
-        aclient.terminate()
-        time.sleep(5)
-        bclient.disconnect()
-        assert len(callback2.messages) == 1, callback2.messages  # should have the will message
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Will message test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
 
     # 0 length clientid
     def test_zero_length_clientid(self):
@@ -367,29 +342,6 @@ class Test(unittest.TestCase):
       return succeeded
 
 
-    def test_dollar_topics(self):
-      # $ topics. The specification says that a topic filter which starts with a wildcard does not match topic names that
-      # begin with a $.  Publishing to a topic which starts with a $ may not be allowed on some servers (which is entirely valid),
-      # so this test will not work and should be omitted in that case.
-      print("$ topics test starting")
-      succeeded = True
-      try:
-        callback2.clear()
-        bclient.connect(host=host, port=port, cleansession=True, keepalive=0)
-        bclient.subscribe([wildtopics[5]], [2])
-        time.sleep(1) # wait for all retained messages, hopefully
-        callback2.clear()
-        bclient.publish("$"+topics[1], b"", 1, retained=False)
-        time.sleep(.2)
-        assert len(callback2.messages) == 0, callback2.messages
-        bclient.disconnect()
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("$ topics test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
     def test_unsubscribe(self):
       print("Unsubscribe test")
       succeeded = True
@@ -398,7 +350,6 @@ class Test(unittest.TestCase):
         bclient.connect(host=host, port=port, cleansession=True)
         bclient.subscribe([topics[0]], [2])
         bclient.subscribe([topics[1]], [2])
-        bclient.subscribe([topics[2]], [2])
         time.sleep(1) # wait for all retained messages, hopefully
         # Unsubscribed from one topic
         bclient.unsubscribe([topics[0]])
@@ -406,12 +357,11 @@ class Test(unittest.TestCase):
         aclient.connect(host=host, port=port, cleansession=True)
         aclient.publish(topics[0], b"", 1, retained=False)
         aclient.publish(topics[1], b"", 1, retained=False)
-        aclient.publish(topics[2], b"", 1, retained=False)
         time.sleep(2)
 
         bclient.disconnect()
         aclient.disconnect()
-        self.assertEqual(len(callback2.messages), 2, callback2.messages)
+        self.assertEqual(len(callback2.messages), 1, callback2.messages)
       except:
         traceback.print_exc()
         succeeded = False
@@ -419,6 +369,52 @@ class Test(unittest.TestCase):
       print("unsubscribe tests", "succeeded" if succeeded else "failed")
       return succeeded
 
+
+#    def test_dollar_topics(self):
+#      # $ topics. The specification says that a topic filter which starts with a wildcard does not match topic names that
+#      # begin with a $.  Publishing to a topic which starts with a $ may not be allowed on some servers (which is entirely valid),
+#      # so this test will not work and should be omitted in that case.
+#      print("$ topics test starting")
+#      succeeded = True
+#      try:
+#        callback2.clear()
+#        bclient.connect(host=host, port=port, cleansession=True, keepalive=0)
+#        bclient.subscribe([wildtopics[5]], [2])
+#        time.sleep(1) # wait for all retained messages, hopefully
+#        callback2.clear()
+#        bclient.publish("$"+topics[1], b"", 1, retained=False)
+#        time.sleep(.2)
+#        assert len(callback2.messages) == 0, callback2.messages
+#        bclient.disconnect()
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("$ topics test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
+
+#    def will_message_test(self):
+#      # will messages
+#      succeeded = True
+#      callback2.clear()
+#      assert len(callback2.messages) == 0, callback2.messages
+#      try:
+#        connack = aclient.connect(host=host, port=port, cleansession=True, willFlag=True,
+#          willTopic=topics[2], willMessage=b"client not disconnected", keepalive=2)
+#        assert connack.flags == 0x00 # Session present
+#        connack = bclient.connect(host=host, port=port, cleansession=False)
+#        bclient.subscribe([topics[2]], [2])
+#        time.sleep(.1)
+#        aclient.terminate()
+#        time.sleep(5)
+#        bclient.disconnect()
+#        assert len(callback2.messages) == 1, callback2.messages  # should have the will message
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Will message test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
 
 if __name__ == "__main__":
   try:
@@ -436,8 +432,9 @@ if __name__ == "__main__":
   wildtopics = ("TopicA/+", "+/C", "#", "/#", "/+", "+/+", "TopicA/#")
   nosubscribe_topics = ("test/nosubscribe",)
 
-  host = "localhost"
+  host = "frontend1-0.frontend1.default.svc.cluster.local"
   port = 1883
+
   for o, a in opts:
     if o in ("--help"):
       usage()
