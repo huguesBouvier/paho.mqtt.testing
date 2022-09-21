@@ -222,7 +222,6 @@ class Test(unittest.TestCase):
         assert connack.flags == 0x00 # Session present
         bclient.publish(topics[1], b"qos 0", 0)
         bclient.publish(topics[2], b"qos 1", 1)
-        bclient.publish(topics[3], b"qos 2", 2)
         time.sleep(2)
         bclient.disconnect()
 
@@ -233,7 +232,7 @@ class Test(unittest.TestCase):
 
         assert len(callback.messages) in [2, 3], callback.messages
         print("This server %s queueing QoS 0 messages for offline clients" % \
-            ("is" if len(callback.messages) == 3 else "is not"))
+            ("is" if len(callback.messages) == 2 else "is not"))
       except:
         traceback.print_exc()
         succeeded = False
