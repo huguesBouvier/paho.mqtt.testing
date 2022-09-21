@@ -240,110 +240,110 @@ class Test(unittest.TestCase):
       self.assertEqual(succeeded, True)
       return succeeded
 
-    def test_overlapping_subscriptions(self):
-      # overlapping subscriptions. When there is more than one matching subscription for the same client for a topic,
-      # the server may send back one message with the highest QoS of any matching subscription, or one message for
-      # each subscription with a matching QoS.
-      print("Overlapping subscriptions test starting")
-      succeeded = True
-      try:
-        callback.clear()
-        callback2.clear()
-        aclient.connect(host=host, port=port)
-        aclient.subscribe([wildtopics[6], wildtopics[0]], [2, 1])
-        aclient.publish(topics[3], b"overlapping topic filters", 2)
-        time.sleep(1)
-        assert len(callback.messages) in [1, 2]
-        if len(callback.messages) == 1:
-          print("This server is publishing one message for all matching overlapping subscriptions, not one for each.")
-          assert callback.messages[0][2] == 2
-        else:
-          print("This server is publishing one message per each matching overlapping subscription.")
-          assert (callback.messages[0][2] == 2 and callback.messages[1][2] == 1) or \
-                 (callback.messages[0][2] == 1 and callback.messages[1][2] == 2), callback.messages
-        aclient.disconnect()
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Overlapping subscriptions test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-    def test_redelivery_on_reconnect(self):
-      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
-      # appropriate MQTT packets
-      print("Redelivery on reconnect test starting")
-      succeeded = True
-      try:
-        callback.clear()
-        callback2.clear()
-        bclient.connect(host=host, port=port, cleansession=False)
-        bclient.subscribe([wildtopics[6]], [2])
-        bclient.pause() # stops responding to incoming publishes
-        bclient.publish(topics[1], b"", 1, retained=False)
-        bclient.publish(topics[3], b"", 2, retained=False)
-        time.sleep(1)
-        bclient.disconnect()
-        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
-        bclient.resume()
-        bclient.connect(host=host, port=port, cleansession=False)
-        time.sleep(3)
-        assert len(callback2.messages) == 2, "length should be 2: %s" % callback2.messages
-        bclient.disconnect()
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-    def test_subscribe_failure(self):
-      # Subscribe failure.  A new feature of MQTT 3.1.1 is the ability to send back negative reponses to subscribe
-      # requests.  One way of doing this is to subscribe to a topic which is not allowed to be subscribed to.
-      print("Subscribe failure test starting")
-      succeeded = True
-      try:
-        callback.clear()
-        aclient.connect(host=host, port=port)
-        aclient.subscribe([nosubscribe_topics[0]], [2])
-        time.sleep(.2)
-        # subscribeds is a list of (msgid, [qos])
-        assert callback.subscribeds[0][1][0] == 0x80, "return code should be 0x80 %s" % callback.subscribeds
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Subscribe failure test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-
-    def test_unsubscribe(self):
-      print("Unsubscribe test")
-      succeeded = True
-      try:
-        callback2.clear()
-        bclient.connect(host=host, port=port, cleansession=True)
-        bclient.subscribe([topics[0]], [2])
-        bclient.subscribe([topics[1]], [2])
-        time.sleep(1) # wait for all retained messages, hopefully
-        # Unsubscribed from one topic
-        bclient.unsubscribe([topics[0]])
-
-        aclient.connect(host=host, port=port, cleansession=True)
-        aclient.publish(topics[0], b"", 1, retained=False)
-        aclient.publish(topics[1], b"", 1, retained=False)
-        time.sleep(2)
-
-        bclient.disconnect()
-        aclient.disconnect()
-        self.assertEqual(len(callback2.messages), 1, callback2.messages)
-      except:
-        traceback.print_exc()
-        succeeded = False
-      self.assertEqual(succeeded, True)
-      print("unsubscribe tests", "succeeded" if succeeded else "failed")
-      return succeeded
-
+#    def test_overlapping_subscriptions(self):
+#      # overlapping subscriptions. When there is more than one matching subscription for the same client for a topic,
+#      # the server may send back one message with the highest QoS of any matching subscription, or one message for
+#      # each subscription with a matching QoS.
+#      print("Overlapping subscriptions test starting")
+#      succeeded = True
+#      try:
+#        callback.clear()
+#        callback2.clear()
+#        aclient.connect(host=host, port=port)
+#        aclient.subscribe([wildtopics[6], wildtopics[0]], [2, 1])
+#        aclient.publish(topics[3], b"overlapping topic filters", 2)
+#        time.sleep(1)
+#        assert len(callback.messages) in [1, 2]
+#        if len(callback.messages) == 1:
+#          print("This server is publishing one message for all matching overlapping subscriptions, not one for each.")
+#          assert callback.messages[0][2] == 2
+#        else:
+#          print("This server is publishing one message per each matching overlapping subscription.")
+#          assert (callback.messages[0][2] == 2 and callback.messages[1][2] == 1) or \
+#                 (callback.messages[0][2] == 1 and callback.messages[1][2] == 2), callback.messages
+#        aclient.disconnect()
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Overlapping subscriptions test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
+#
+#    def test_redelivery_on_reconnect(self):
+#      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
+#      # appropriate MQTT packets
+#      print("Redelivery on reconnect test starting")
+#      succeeded = True
+#      try:
+#        callback.clear()
+#        callback2.clear()
+#        bclient.connect(host=host, port=port, cleansession=False)
+#        bclient.subscribe([wildtopics[6]], [2])
+#        bclient.pause() # stops responding to incoming publishes
+#        bclient.publish(topics[1], b"", 1, retained=False)
+#        bclient.publish(topics[3], b"", 2, retained=False)
+#        time.sleep(1)
+#        bclient.disconnect()
+#        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
+#        bclient.resume()
+#        bclient.connect(host=host, port=port, cleansession=False)
+#        time.sleep(3)
+#        assert len(callback2.messages) == 2, "length should be 2: %s" % callback2.messages
+#        bclient.disconnect()
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
+#
+#    def test_subscribe_failure(self):
+#      # Subscribe failure.  A new feature of MQTT 3.1.1 is the ability to send back negative reponses to subscribe
+#      # requests.  One way of doing this is to subscribe to a topic which is not allowed to be subscribed to.
+#      print("Subscribe failure test starting")
+#      succeeded = True
+#      try:
+#        callback.clear()
+#        aclient.connect(host=host, port=port)
+#        aclient.subscribe([nosubscribe_topics[0]], [2])
+#        time.sleep(.2)
+#        # subscribeds is a list of (msgid, [qos])
+#        assert callback.subscribeds[0][1][0] == 0x80, "return code should be 0x80 %s" % callback.subscribeds
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      print("Subscribe failure test", "succeeded" if succeeded else "failed")
+#      self.assertEqual(succeeded, True)
+#      return succeeded
+#
+#
+#    def test_unsubscribe(self):
+#      print("Unsubscribe test")
+#      succeeded = True
+#      try:
+#        callback2.clear()
+#        bclient.connect(host=host, port=port, cleansession=True)
+#        bclient.subscribe([topics[0]], [2])
+#        bclient.subscribe([topics[1]], [2])
+#        time.sleep(1) # wait for all retained messages, hopefully
+#        # Unsubscribed from one topic
+#        bclient.unsubscribe([topics[0]])
+#
+#        aclient.connect(host=host, port=port, cleansession=True)
+#        aclient.publish(topics[0], b"", 1, retained=False)
+#        aclient.publish(topics[1], b"", 1, retained=False)
+#        time.sleep(2)
+#
+#        bclient.disconnect()
+#        aclient.disconnect()
+#        self.assertEqual(len(callback2.messages), 1, callback2.messages)
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      self.assertEqual(succeeded, True)
+#      print("unsubscribe tests", "succeeded" if succeeded else "failed")
+#      return succeeded
+#
 
 #    def test_keepalive(self):
 #      # keepalive processing.  We should be kicked off by the server if we don't send or receive any data, and don't send
