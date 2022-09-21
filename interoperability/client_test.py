@@ -111,37 +111,37 @@ class Test(unittest.TestCase):
       print("Basic test starting")
       global aclient
       succeeded = True
-#      try:
-#        aclient.connect(host=host, port=port)
-#        aclient.disconnect()
-#        connack = aclient.connect(host=host, port=port)
-#        assert connack.flags == 0x00 # Session present
-#        aclient.subscribe([topics[0]], [2])
-#        time.sleep(.1)
-#        aclient.publish(topics[0], b"qos 0")
-#        aclient.publish(topics[0], b"qos 1", 1)
-#        time.sleep(2)
-#        aclient.disconnect()
-#        time.sleep(.1)
-#        self.assertEqual(len(callback.messages), 2)
-#      except:
-#        traceback.print_exc()
-#        succeeded = False
-#
-#      try:
-#        aclient.connect(host=host, port=port)
-#        aclient.connect(host=host, port=port, newsocket=False) # should fail - second connect on socket
-#        succeeded = False
-#      except Exception as exc:
-#        pass # exception expected
-#      try:
-#        aclient.connect(host=host, port=port, protocolName="hj") # should fail - wrong protocol name
-#        succeeded = False
-#      except Exception as exc:
-#        pass # exception expected
-#      print("Basic test", "succeeded" if succeeded else "failed")
-#      self.assertEqual(succeeded, True)
-#      return succeeded
+      try:
+        aclient.connect(host=host, port=port)
+        aclient.disconnect()
+        connack = aclient.connect(host=host, port=port)
+        assert connack.flags == 0x00 # Session present
+        aclient.subscribe([topics[0]], [2])
+        time.sleep(.1)
+        aclient.publish(topics[0], b"qos 0")
+        aclient.publish(topics[0], b"qos 1", 1)
+        time.sleep(2)
+        aclient.disconnect()
+        time.sleep(.1)
+        self.assertEqual(len(callback.messages), 2)
+      except:
+        traceback.print_exc()
+        succeeded = False
+
+      try:
+        aclient.connect(host=host, port=port)
+        aclient.connect(host=host, port=port, newsocket=False) # should fail - second connect on socket
+        succeeded = False
+      except Exception as exc:
+        pass # exception expected
+      try:
+        aclient.connect(host=host, port=port, protocolName="hj") # should fail - wrong protocol name
+        succeeded = False
+      except Exception as exc:
+        pass # exception expected
+      print("Basic test", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
 
     def test_retained_messages(self):
       qos0topic="fromb/qos 0"
@@ -181,33 +181,33 @@ class Test(unittest.TestCase):
       print("Retained message test", "succeeded" if succeeded else "failed")
       self.assertEqual(succeeded, True)
       return succeeded
-#
-#
-#    # 0 length clientid
-#    def test_zero_length_clientid(self):
-#      print("Zero length clientid test starting")
-#      succeeded = True
-#      try:
-#        client0 = mqtt_client.Client("")
-#        fails = False
-#        try:
-#          client0.connect(host=host, port=port, cleansession=False) # should be rejected
-#        except:
-#          fails = True
-#        self.assertEqual(fails, True)
-#        fails = False
-#        try:
-#          client0.connect(host=host, port=port, cleansession=True) # should work
-#        except:
-#          fails = True
-#        self.assertEqual(fails, False)
-#        client0.disconnect()
-#      except:
-#        traceback.print_exc()
-#        succeeded = False
-#      print("Zero length clientid test", "succeeded" if succeeded else "failed")
-#      self.assertEqual(succeeded, True)
-#      return succeeded
+
+
+    # 0 length clientid
+    def test_zero_length_clientid(self):
+      print("Zero length clientid test starting")
+      succeeded = True
+      try:
+        client0 = mqtt_client.Client("")
+        fails = False
+        try:
+          client0.connect(host=host, port=port, cleansession=False) # should be rejected
+        except:
+          fails = True
+        self.assertEqual(fails, True)
+        fails = False
+        try:
+          client0.connect(host=host, port=port, cleansession=True) # should work
+        except:
+          fails = True
+        self.assertEqual(fails, False)
+        client0.disconnect()
+      except:
+        traceback.print_exc()
+        succeeded = False
+      print("Zero length clientid test", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
 #
 #    def test_offline_message_queueing(self):
 #      succeeded = True
