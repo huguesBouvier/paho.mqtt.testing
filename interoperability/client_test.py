@@ -249,64 +249,64 @@ class Test(unittest.TestCase):
 #      return succeeded
 
 
-    def test_redelivery_on_reconnect(self):
-      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
-      # appropriate MQTT packets
-      print("Redelivery on reconnect test starting")
-      succeeded = True
-      try:
-        callback.clear()
-        callback2.clear()
-        bclient.connect(host=host, port=port, cleansession=False)
-        time.sleep(1)
-        bclient.subscribe([topics[1]], [2])
-        time.sleep(1)
-        bclient.pause() # stops responding to incoming publishes
-        bclient.publish(topics[1], b"", 1, retained=False)
-        time.sleep(1)
-        bclient.disconnect()
-        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
-        time.sleep(1)
-        bclient.resume()
-        bclient.connect(host=host, port=port, cleansession=False)
-        time.sleep(3)
-        assert len(callback2.messages) == 1, "length should be 1: %s" % callback2.messages
-        bclient.disconnect()
-      except:
-        traceback.print_exc()
-        succeeded = False
-      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
-      self.assertEqual(succeeded, True)
-      return succeeded
-
-#    def test_overlapping_subscriptions(self):
-#      # overlapping subscriptions. When there is more than one matching subscription for the same client for a topic,
-#      # the server may send back one message with the highest QoS of any matching subscription, or one message for
-#      # each subscription with a matching QoS.
-#      print("Overlapping subscriptions test starting")
+#    def test_redelivery_on_reconnect(self):
+#      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
+#      # appropriate MQTT packets
+#      print("Redelivery on reconnect test starting")
 #      succeeded = True
 #      try:
 #        callback.clear()
 #        callback2.clear()
-#        aclient.connect(host=host, port=port)
-#        aclient.subscribe([wildtopics[6], wildtopics[0]], [2, 1])
-#        aclient.publish(topics[3], b"overlapping topic filters", 2)
+#        bclient.connect(host=host, port=port, cleansession=False)
 #        time.sleep(1)
-#        assert len(callback.messages) in [1, 2]
-#        if len(callback.messages) == 1:
-#          print("This server is publishing one message for all matching overlapping subscriptions, not one for each.")
-#          assert callback.messages[0][2] == 2
-#        else:
-#          print("This server is publishing one message per each matching overlapping subscription.")
-#          assert (callback.messages[0][2] == 2 and callback.messages[1][2] == 1) or \
-#                 (callback.messages[0][2] == 1 and callback.messages[1][2] == 2), callback.messages
-#        aclient.disconnect()
+#        bclient.subscribe([topics[1]], [2])
+#        time.sleep(1)
+#        bclient.pause() # stops responding to incoming publishes
+#        bclient.publish(topics[1], b"", 1, retained=False)
+#        time.sleep(1)
+#        bclient.disconnect()
+#        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
+#        time.sleep(1)
+#        bclient.resume()
+#        bclient.connect(host=host, port=port, cleansession=False)
+#        time.sleep(3)
+#        assert len(callback2.messages) == 1, "length should be 1: %s" % callback2.messages
+#        bclient.disconnect()
 #      except:
 #        traceback.print_exc()
 #        succeeded = False
-#      print("Overlapping subscriptions test", "succeeded" if succeeded else "failed")
+#      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
 #      self.assertEqual(succeeded, True)
 #      return succeeded
+
+    def test_overlapping_subscriptions(self):
+      # overlapping subscriptions. When there is more than one matching subscription for the same client for a topic,
+      # the server may send back one message with the highest QoS of any matching subscription, or one message for
+      # each subscription with a matching QoS.
+      print("Overlapping subscriptions test starting")
+      succeeded = True
+      try:
+        callback.clear()
+        callback2.clear()
+        aclient.connect(host=host, port=port)
+        aclient.subscribe([topics[1], topics[1]], [1, 0])
+        aclient.publish(topics[3], b"overlapping topic filters", 1)
+        time.sleep(1)
+        assert len(callback.messages) in [1, 2]
+        if len(callback.messages) == 1:
+          print("This server is publishing one message for all matching overlapping subscriptions, not one for each.")
+          assert callback.messages[0][2] == 2
+        else:
+          print("This server is publishing one message per each matching overlapping subscription.")
+          assert (callback.messages[0][2] == 2 and callback.messages[1][2] == 1) or \
+                 (callback.messages[0][2] == 1 and callback.messages[1][2] == 2), callback.messages
+        aclient.disconnect()
+      except:
+        traceback.print_exc()
+        succeeded = False
+      print("Overlapping subscriptions test", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
 #
 #
 #    def test_subscribe_failure(self):
