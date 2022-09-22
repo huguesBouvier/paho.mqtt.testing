@@ -111,7 +111,7 @@ class Test(unittest.TestCase):
     def setUpClass(cls):
       setData()
       global callback, callback2, aclient, bclient
-      cleanup()
+      #cleanup()
 
       callback = Callbacks()
       callback2 = Callbacks()
@@ -160,7 +160,7 @@ class Test(unittest.TestCase):
       self.assertTrue(1 in qoss and 0 in qoss, qoss)
 
       cleanRetained()
-      
+
 
 def setData():
   global topics, wildtopics, nosubscribe_topics, host, port
