@@ -293,7 +293,7 @@ class Test(unittest.TestCase):
         time.sleep(1)
         aclient.subscribe([topics[1], topics[1]], [1, 0])
         time.sleep(1)
-        aclient.publish(topics[3], b"overlapping topic filters", 1)
+        aclient.publish(topics[1], b"overlapping topic filters", 1)
         time.sleep(1)
         assert len(callback.messages) in [1, 2]
         if len(callback.messages) == 1:
