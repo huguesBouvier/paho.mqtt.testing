@@ -279,57 +279,59 @@ class Test(unittest.TestCase):
 #      self.assertEqual(succeeded, True)
 #      return succeeded
 
-#
-#
-#    def test_subscribe_failure(self):
-#      # Subscribe failure.  A new feature of MQTT 3.1.1 is the ability to send back negative reponses to subscribe
-#      # requests.  One way of doing this is to subscribe to a topic which is not allowed to be subscribed to.
-#      print("Subscribe failure test starting")
-#      succeeded = True
-#      try:
-#        callback.clear()
-#        aclient.connect(host=host, port=port)
-#        aclient.subscribe([nosubscribe_topics[0]], [2])
-#        time.sleep(.2)
-#        # subscribeds is a list of (msgid, [qos])
-#        assert callback.subscribeds[0][1][0] == 0x80, "return code should be 0x80 %s" % callback.subscribeds
-#      except:
-#        traceback.print_exc()
-#        succeeded = False
-#      print("Subscribe failure test", "succeeded" if succeeded else "failed")
-#      self.assertEqual(succeeded, True)
-#      return succeeded
-#
-#
-    def test_unsubscribe(self):
-      print("Unsubscribe test")
+
+
+    def test_subscribe_failure(self):
+      # Subscribe failure.  A new feature of MQTT 3.1.1 is the ability to send back negative reponses to subscribe
+      # requests.  One way of doing this is to subscribe to a topic which is not allowed to be subscribed to.
+      print("Subscribe failure test starting")
       succeeded = True
       try:
-        callback2.clear()
-        bclient.connect(host=host, port=port, cleansession=True)
-        time.sleep(1) # wait for all retained messages, hopefully
-        bclient.subscribe([topics[0]], [2])
-        bclient.subscribe([topics[1]], [2])
-        time.sleep(1) # wait for all retained messages, hopefully
-        # Unsubscribed from one topic
-        bclient.unsubscribe([topics[0]])
-
-        aclient.connect(host=host, port=port, cleansession=True)
-        time.sleep(1)
-        aclient.publish(topics[0], b"", 1, retained=False)
-        aclient.publish(topics[1], b"", 1, retained=False)
-        time.sleep(2)
-
-        bclient.disconnect()
-        aclient.disconnect()
-        time.sleep(1)
-        self.assertEqual(len(callback2.messages), 1, callback2.messages)
+        callback.clear()
+        aclient.connect(host=host, port=port)
+        aclient.subscribe([nosubscribe_topics[0]], [2])
+        time.sleep(.2)
+        # subscribeds is a list of (msgid, [qos])
+        assert callback.subscribeds[0][1][0] == 0x80, "return code should be 0x80 %s" % callback.subscribeds
       except:
         traceback.print_exc()
         succeeded = False
+      print("Subscribe failure test", "succeeded" if succeeded else "failed")
       self.assertEqual(succeeded, True)
-      print("unsubscribe tests", "succeeded" if succeeded else "failed")
       return succeeded
+
+
+
+
+#    def test_unsubscribe(self):
+#      print("Unsubscribe test")
+#      succeeded = True
+#      try:
+#        callback2.clear()
+#        bclient.connect(host=host, port=port, cleansession=True)
+#        time.sleep(1) # wait for all retained messages, hopefully
+#        bclient.subscribe([topics[0]], [2])
+#        bclient.subscribe([topics[1]], [2])
+#        time.sleep(1) # wait for all retained messages, hopefully
+#        # Unsubscribed from one topic
+#        bclient.unsubscribe([topics[0]])
+#
+#        aclient.connect(host=host, port=port, cleansession=True)
+#        time.sleep(1)
+#        aclient.publish(topics[0], b"", 1, retained=False)
+#        aclient.publish(topics[1], b"", 1, retained=False)
+#        time.sleep(2)
+#
+#        bclient.disconnect()
+#        aclient.disconnect()
+#        time.sleep(1)
+#        self.assertEqual(len(callback2.messages), 1, callback2.messages)
+#      except:
+#        traceback.print_exc()
+#        succeeded = False
+#      self.assertEqual(succeeded, True)
+#      print("unsubscribe tests", "succeeded" if succeeded else "failed")
+#      return succeeded
 
 
 #    def test_keepalive(self):
