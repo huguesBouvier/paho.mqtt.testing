@@ -307,6 +307,7 @@ class Test(unittest.TestCase):
       try:
         callback2.clear()
         bclient.connect(host=host, port=port, cleansession=True)
+        time.sleep(1) # wait for all retained messages, hopefully
         bclient.subscribe([topics[0]], [2])
         bclient.subscribe([topics[1]], [2])
         time.sleep(1) # wait for all retained messages, hopefully
@@ -314,12 +315,14 @@ class Test(unittest.TestCase):
         bclient.unsubscribe([topics[0]])
 
         aclient.connect(host=host, port=port, cleansession=True)
+        time.sleep(1)
         aclient.publish(topics[0], b"", 1, retained=False)
         aclient.publish(topics[1], b"", 1, retained=False)
         time.sleep(2)
 
         bclient.disconnect()
         aclient.disconnect()
+        time.sleep(1)
         self.assertEqual(len(callback2.messages), 1, callback2.messages)
       except:
         traceback.print_exc()
