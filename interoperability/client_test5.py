@@ -136,7 +136,7 @@ class Test(unittest.TestCase):
       aclient.publish(topics[0], b"qos 1", 1)
       time.sleep(2)
       aclient.disconnect()
-      self.assertEqual(len(callback.messages), 1)
+      self.assertEqual(len(callback.messages), 2)
 
       with self.assertRaises(Exception):
         aclient.connect(host=host, port=port)
@@ -161,11 +161,12 @@ class Test(unittest.TestCase):
       aclient.publish(topics[1], b"qos 0", 0, retained=True, properties=publish_properties)
       aclient.publish(topics[2], b"qos 1", 1, retained=True, properties=publish_properties)
       time.sleep(1)
-      aclient.subscribe([wildtopics[5]], [MQTTV5.SubscribeOptions(2)])
+      aclient.subscribe([topics[1]], [MQTTV5.SubscribeOptions(2)])
+      aclient.subscribe([topics[2]], [MQTTV5.SubscribeOptions(2)])
       time.sleep(1)
       aclient.disconnect()
 
-      self.assertEqual(len(callback.messages), 3)
+      self.assertEqual(len(callback.messages), 2)
       userprops = callback.messages[0][5].UserProperty
       self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
       userprops = callback.messages[1][5].UserProperty
@@ -343,7 +344,9 @@ class Test(unittest.TestCase):
     def test_user_properties(self):
       callback.clear()
       aclient.connect(host=host, port=port, cleanstart=True)
+      time.sleep(1)
       aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
+      time.sleep(1)
       publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
       publish_properties.UserProperty = ("a", "2")
       publish_properties.UserProperty = ("c", "3")
