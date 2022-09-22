@@ -286,10 +286,13 @@ class Test(unittest.TestCase):
       print("Overlapping subscriptions test starting")
       succeeded = True
       try:
+        time.sleep(1)
         callback.clear()
         callback2.clear()
         aclient.connect(host=host, port=port)
+        time.sleep(1)
         aclient.subscribe([topics[1], topics[1]], [1, 0])
+        time.sleep(1)
         aclient.publish(topics[3], b"overlapping topic filters", 1)
         time.sleep(1)
         assert len(callback.messages) in [1, 2]
