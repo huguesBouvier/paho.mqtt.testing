@@ -128,8 +128,10 @@ class Test(unittest.TestCase):
       aclient.disconnect()
 
       rc = aclient.connect(host=host, port=port)
+      time.sleep(1) 
       self.assertEqual(rc.reasonCode.getName(), "Success")
       aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
+      time.sleep(1)   
       aclient.publish(topics[0], b"qos 0")
       aclient.publish(topics[0], b"qos 1", 1)
       time.sleep(2)
@@ -367,54 +369,19 @@ class Test(unittest.TestCase):
      publish_properties.ContentType = "My name"
      aclient.publish(topics[0], b"", 0, retained=False, properties=publish_properties)
      aclient.publish(topics[0], b"", 1, retained=False, properties=publish_properties)
-     aclient.publish(topics[0], b"", 2, retained=False, properties=publish_properties)
-     while len(callback.messages) < 3:
+     while len(callback.messages) < 2:
        time.sleep(.1)
      aclient.disconnect()
 
-     self.assertEqual(len(callback.messages), 3, callback.messages)
+     self.assertEqual(len(callback.messages), 2, callback.messages)
      props = callback.messages[0][5]
      self.assertEqual(props.ContentType, "My name", props.ContentType)
      self.assertEqual(props.PayloadFormatIndicator, 1, props.PayloadFormatIndicator)
      props = callback.messages[1][5]
      self.assertEqual(props.ContentType, "My name", props.ContentType)
      self.assertEqual(props.PayloadFormatIndicator, 1, props.PayloadFormatIndicator)
-     props = callback.messages[2][5]
-     self.assertEqual(props.ContentType, "My name", props.ContentType)
-     self.assertEqual(props.PayloadFormatIndicator, 1, props.PayloadFormatIndicator)
-     qoss = [callback.messages[i][2] for i in range(3)]
-     self.assertTrue(1 in qoss and 2 in qoss and 0 in qoss, qoss)
-
-    def test_publication_expiry(self):
-      callback.clear()
-      callback2.clear()
-      connect_properties = MQTTV5.Properties(MQTTV5.PacketTypes.CONNECT)
-      connect_properties.SessionExpiryInterval = 99999
-      bclient.connect(host=host, port=port, cleanstart=True, properties=connect_properties)
-      bclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
-      disconnect_properties = MQTTV5.Properties(MQTTV5.PacketTypes.DISCONNECT)
-      disconnect_properties.SessionExpiryInterval = 999999999
-      bclient.disconnect(properties = disconnect_properties)
-
-      aclient.connect(host=host, port=port, cleanstart=True)
-      publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
-      publish_properties.MessageExpiryInterval = 1
-      aclient.publish(topics[0], b"qos 1 - expire", 1, retained=False, properties=publish_properties)
-      aclient.publish(topics[0], b"qos 2 - expire", 2, retained=False, properties=publish_properties)
-      publish_properties.MessageExpiryInterval = 6
-      aclient.publish(topics[0], b"qos 1 - don't expire", 1, retained=False, properties=publish_properties)
-      aclient.publish(topics[0], b"qos 2 - don't expire", 2, retained=False, properties=publish_properties)
-
-      time.sleep(3)
-      bclient.connect(host=host, port=port, cleanstart=False)
-      self.waitfor(callback2.messages, 1, 3)
-      time.sleep(1)
-      self.assertEqual(len(callback2.messages), 2, callback2.messages)
-      self.assertTrue(callback2.messages[0][5].MessageExpiryInterval < 6,
-                             callback2.messages[0][5].MessageExpiryInterval)
-      self.assertTrue(callback2.messages[1][5].MessageExpiryInterval < 6,
-                                   callback2.messages[1][5].MessageExpiryInterval)
-      aclient.disconnect()
+     qoss = [callback.messages[i][2] for i in range(2)]
+     self.assertTrue(1 in qoss and 0 in qoss, qoss)
 
     def waitfor(self, queue, depth, limit):
       total = 0
@@ -549,6 +516,38 @@ class Test(unittest.TestCase):
       callback.clear()
       callback2.clear()
 
+
+#    def test_publication_expiry(self):
+#      callback.clear()
+#      callback2.clear()
+#      connect_properties = MQTTV5.Properties(MQTTV5.PacketTypes.CONNECT)
+#      connect_properties.SessionExpiryInterval = 99999
+#      bclient.connect(host=host, port=port, cleanstart=True, properties=connect_properties)
+#      bclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2)])
+#      disconnect_properties = MQTTV5.Properties(MQTTV5.PacketTypes.DISCONNECT)
+#      disconnect_properties.SessionExpiryInterval = 999999999
+#      bclient.disconnect(properties = disconnect_properties)
+#
+#      aclient.connect(host=host, port=port, cleanstart=True)
+#      publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
+#      publish_properties.MessageExpiryInterval = 1
+#      aclient.publish(topics[0], b"qos 1 - expire", 1, retained=False, properties=publish_properties)
+#      aclient.publish(topics[0], b"qos 2 - expire", 2, retained=False, properties=publish_properties)
+#      publish_properties.MessageExpiryInterval = 6
+#      aclient.publish(topics[0], b"qos 1 - don't expire", 1, retained=False, properties=publish_properties)
+#      aclient.publish(topics[0], b"qos 2 - don't expire", 2, retained=False, properties=publish_properties)
+#
+#      time.sleep(3)
+#      bclient.connect(host=host, port=port, cleanstart=False)
+#      self.waitfor(callback2.messages, 1, 3)
+#      time.sleep(1)
+#      self.assertEqual(len(callback2.messages), 2, callback2.messages)
+#      self.assertTrue(callback2.messages[0][5].MessageExpiryInterval < 6,
+#                             callback2.messages[0][5].MessageExpiryInterval)
+#      self.assertTrue(callback2.messages[1][5].MessageExpiryInterval < 6,
+#                                   callback2.messages[1][5].MessageExpiryInterval)
+#      aclient.disconnect()
+#
 #    def test_subscribe_identifiers(self):
 #      callback.clear()
 #      callback2.clear()
