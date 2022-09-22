@@ -238,7 +238,7 @@ class Test(unittest.TestCase):
         time.sleep(2)
         aclient.disconnect()
 
-        assert len(callback.messages) in [2, 3], callback.messages
+        assert len(callback.messages) in [1, 2], callback.messages
         print("This server %s queueing QoS 0 messages for offline clients" % \
             ("is" if len(callback.messages) == 2 else "is not"))
       except:
