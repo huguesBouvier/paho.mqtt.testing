@@ -132,36 +132,47 @@ class Test(unittest.TestCase):
         total += interval
         time.sleep(interval)
 
-    def test_retained_message(self):
-      qos0topic="fromb/qos 0"
-      qos1topic="fromb/qos 1"
-      qos2topic="fromb/qos2"
-      wildcardtopic="fromb/+"
+
+    def test_request_response(self):
+      callback.clear()
+      callback2.clear()
+
+      aclient.connect(host=host, port=port, cleanstart=True)
+      bclient.connect(host=host, port=port, cleanstart=True)
+      aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, noLocal=True)])
+      self.waitfor(callback.subscribeds, 1, 3)
+
+      bclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, noLocal=True)])
+      self.waitfor(callback.subscribeds, 1, 3)
 
       publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
-      publish_properties.UserProperty = ("a", "2")
-      publish_properties.UserProperty = ("c", "3")
+      publish_properties.ResponseTopic = topics[0]
+      publish_properties.CorrelationData = b"334"
+      # client a is the requester
+      aclient.publish(topics[0], b"request", 1, properties=publish_properties)
 
-      # retained messages
-      callback.clear()
-      aclient.connect(host=host, port=port, cleanstart=True)
-      aclient.publish(topics[1], b"qos 0", 0, retained=True, properties=publish_properties)
-      aclient.publish(topics[2], b"qos 1", 1, retained=True, properties=publish_properties)
-      time.sleep(1)
-      aclient.subscribe([topics[1]], [MQTTV5.SubscribeOptions(2)])
-      aclient.subscribe([topics[2]], [MQTTV5.SubscribeOptions(2)])
-      time.sleep(1)
+      # client b is the responder
+      self.waitfor(callback2.messages, 1, 3)
+      self.assertEqual(len(callback2.messages), 1, callback2.messages)
+
+      self.assertEqual(len(callback2.messages), 1, callback2.messages)
+      self.assertEqual(callback2.messages[0][5].ResponseTopic, topics[0],
+                       callback2.messages[0][5])
+      self.assertEqual(callback2.messages[0][5].CorrelationData, b"334",
+                       callback2.messages[0][5])
+
+      bclient.publish(callback2.messages[0][5].ResponseTopic, b"response", 1,
+                      properties=callback2.messages[0][5])
+
+      # client a gets the response
+      self.waitfor(callback.messages, 1, 3)
+      self.assertEqual(len(callback.messages), 1, callback.messages)
+
       aclient.disconnect()
+      bclient.disconnect()
 
-      self.assertEqual(len(callback.messages), 2)
-      userprops = callback.messages[0][5].UserProperty
-      self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
-      userprops = callback.messages[1][5].UserProperty
-      self.assertTrue(userprops in [[("a", "2"), ("c", "3")],[("c", "3"), ("a", "2")]], userprops)
-      qoss = [callback.messages[i][2] for i in range(2)]
-      self.assertTrue(1 in qoss and 0 in qoss, qoss)
-
-      cleanRetained()
+      callback.clear()
+      callback2.clear()
 
 def setData():
   global topics, wildtopics, nosubscribe_topics, host, port
