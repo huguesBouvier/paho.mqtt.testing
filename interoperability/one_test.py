@@ -146,11 +146,9 @@ class Test(unittest.TestCase):
       callback.clear()
       aclient.connect(host=host, port=port, cleanstart=True)
       aclient.publish(topics[1], b"qos 0", 0, retained=True, properties=publish_properties)
-      time.sleep(1)
       aclient.publish(topics[2], b"qos 1", 1, retained=True, properties=publish_properties)
       time.sleep(1)
       aclient.subscribe([topics[1]], [MQTTV5.SubscribeOptions(2)])
-      time.sleep(1)
       aclient.subscribe([topics[2]], [MQTTV5.SubscribeOptions(2)])
       time.sleep(1)
       aclient.disconnect()
@@ -164,7 +162,6 @@ class Test(unittest.TestCase):
       self.assertTrue(1 in qoss and 0 in qoss, qoss)
 
       cleanRetained()
-
 
 def setData():
   global topics, wildtopics, nosubscribe_topics, host, port

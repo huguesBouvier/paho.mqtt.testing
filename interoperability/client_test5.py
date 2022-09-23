@@ -63,12 +63,14 @@ class Callbacks(mqtt_client.Callback):
   def unsubscribed(self, msgid):
     logging.info("unsubscribed %d", msgid)
     self.unsubscribeds.append(msgid)
-
+    
 def cleanRetained():
   callback = Callbacks()
   curclient = mqtt_client.Client("clean retained".encode("utf-8"))
   curclient.registerCallback(callback)
+  time.sleep(1)
   curclient.connect(host=host, port=port, cleanstart=True)
+  time.sleep(1)
   curclient.subscribe(["#"], [MQTTV5.SubscribeOptions(0)])
   time.sleep(2) # wait for all retained messages to arrive
   for message in callback.messages:
