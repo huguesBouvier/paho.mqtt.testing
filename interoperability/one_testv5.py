@@ -91,8 +91,6 @@ def cleanup():
     curclient.disconnect()
     time.sleep(.1)
 
-  # clean retained messages
-  cleanRetained()
   print("clean up finished")
 
 def usage():
@@ -132,47 +130,91 @@ class Test(unittest.TestCase):
         total += interval
         time.sleep(interval)
 
-
-    def test_request_response(self):
+    def test_subscribe_options(self):
       callback.clear()
       callback2.clear()
 
+      # noLocal
+      #aclient.connect(host=host, port=port, cleanstart=True)
+      #bclient.connect(host=host, port=port, cleanstart=True)
+      #aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, noLocal=True)])
+      #self.waitfor(callback.subscribeds, 1, 3)
+      #bclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, noLocal=True)])
+      #self.waitfor(callback.subscribeds, 1, 3)
+      #aclient.publish(topics[0], b"noLocal test", 1, retained=False)
+#
+      #self.waitfor(callback2.messages, 1, 3)
+      #time.sleep(1)
+#
+      #self.assertEqual(callback.messages, [], callback.messages)
+      #self.assertEqual(len(callback2.messages), 1, callback2.messages)
+      #aclient.disconnect()
+      #bclient.disconnect()
+#
+      #callback.clear()
+      #callback2.clear()
+
+      # retainAsPublished
       aclient.connect(host=host, port=port, cleanstart=True)
-      bclient.connect(host=host, port=port, cleanstart=True)
-      aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, noLocal=True)])
+      aclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, retainAsPublished=True)])
       self.waitfor(callback.subscribeds, 1, 3)
+      aclient.publish(topics[0], b"retain as published false", 1, retained=False)
+      aclient.publish(topics[0], b"retain as published true", 1, retained=True)
 
-      bclient.subscribe([topics[0]], [MQTTV5.SubscribeOptions(2, noLocal=True)])
-      self.waitfor(callback.subscribeds, 1, 3)
+      self.waitfor(callback.messages, 2, 3)
+      time.sleep(1)
 
-      publish_properties = MQTTV5.Properties(MQTTV5.PacketTypes.PUBLISH)
-      publish_properties.ResponseTopic = topics[0]
-      publish_properties.CorrelationData = b"334"
-      # client a is the requester
-      aclient.publish(topics[0], b"request", 1, properties=publish_properties)
-
-      # client b is the responder
-      self.waitfor(callback2.messages, 1, 3)
-      self.assertEqual(len(callback2.messages), 1, callback2.messages)
-
-      self.assertEqual(len(callback2.messages), 1, callback2.messages)
-      self.assertEqual(callback2.messages[0][5].ResponseTopic, topics[0],
-                       callback2.messages[0][5])
-      self.assertEqual(callback2.messages[0][5].CorrelationData, b"334",
-                       callback2.messages[0][5])
-
-      bclient.publish(callback2.messages[0][5].ResponseTopic, b"response", 1,
-                      properties=callback2.messages[0][5])
-
-      # client a gets the response
-      self.waitfor(callback.messages, 1, 3)
-      self.assertEqual(len(callback.messages), 1, callback.messages)
-
+      self.assertEqual(len(callback.messages), 2, callback.messages)
+      aclient.publish(topics[0], b"", 0, retained=True)
+      time.sleep(1)
       aclient.disconnect()
-      bclient.disconnect()
+      self.assertEqual(callback.messages[0][3], False)
+      self.assertEqual(callback.messages[1][3], True)
+
+      # retainHandling
+      callback.clear()
+      aclient.connect(host=host, port=port, cleanstart=True)
+      aclient.publish(topics[1], b"qos 0", 0, retained=True)
+      aclient.publish(topics[2], b"qos 1", 1, retained=True)
+      time.sleep(1)
+      aclient.subscribe([topics[1]], [MQTTV5.SubscribeOptions(2, retainHandling=1)])
+      time.sleep(1)
+      aclient.subscribe([topics[2]], [MQTTV5.SubscribeOptions(2, retainHandling=1)])
+      time.sleep(1)
+      self.assertEqual(len(callback.messages), 2)
+      qoss = [callback.messages[i][2] for i in range(2)]
+      self.assertTrue(1 in qoss and 0 in qoss, qoss)
+      callback.clear()
+      aclient.subscribe([topics[1]], [MQTTV5.SubscribeOptions(2, retainHandling=1)])
+      time.sleep(1)
+      self.assertEqual(len(callback.messages), 0)
+      aclient.disconnect()
 
       callback.clear()
-      callback2.clear()
+      aclient.connect(host=host, port=port, cleanstart=True)
+      aclient.subscribe([topics[1]], [MQTTV5.SubscribeOptions(2, retainHandling=2)])
+      time.sleep(1)
+      self.assertEqual(len(callback.messages), 0)
+      aclient.subscribe([topics[2]], [MQTTV5.SubscribeOptions(2, retainHandling=2)])
+      time.sleep(1)
+      self.assertEqual(len(callback.messages), 0)
+      aclient.disconnect()
+
+      callback.clear()
+      aclient.connect(host=host, port=port, cleanstart=True)
+      time.sleep(1)
+      aclient.subscribe([topics[2]], [MQTTV5.SubscribeOptions(0, retainHandling=0)])
+      time.sleep(1)
+      self.assertEqual(len(callback.messages), 1)
+      qoss = [callback.messages[i][2] for i in range(1)]
+      self.assertTrue(0 in qoss, qoss)
+
+
+      aclient.publish(topics[1], b"", 0, retained=True)
+      aclient.publish(topics[2], b"", 1, retained=True)
+      time.sleep(1)
+      callback.clear()
+      aclient.disconnect()
 
 def setData():
   global topics, wildtopics, nosubscribe_topics, host, port
@@ -199,7 +241,8 @@ if __name__ == "__main__":
   print(wildtopics)
   nosubscribe_topics = ("test/nosubscribe",)
 
-  host = "frontend1-0.frontend1.default.svc.cluster.local"
+  #host = "frontend1-0.frontend1.default.svc.cluster.local"
+  host = "192.168.49.2"
   port = 1883
   for o, a in opts:
     if o in ("--help"):

@@ -153,7 +153,8 @@ if __name__ == "__main__":
   wildtopics = ("TopicA/+", "+/C", "#", "/#", "/+", "+/+", "TopicA/#")
   nosubscribe_topics = ("test/nosubscribe",)
 
-  host = "frontend1-0.frontend1.default.svc.cluster.local"
+  #host = "frontend1-0.frontend1.default.svc.cluster.local"
+  host = "192.168.49.2"
   port = 1883
 
   for o, a in opts:
