@@ -159,7 +159,6 @@ class Test(unittest.TestCase):
       # retained messages
       callback.clear()
       aclient.connect(host=host, port=port, cleanstart=True)
-      aclient.connect(host=host, port=port, cleanstart=True)
       time.sleep(1)
       aclient.publish(topics[1], b"qos 0", 0, retained=True, properties=publish_properties)
       aclient.publish(topics[2], b"qos 1", 1, retained=True, properties=publish_properties)
@@ -523,6 +522,28 @@ class Test(unittest.TestCase):
       bclient.publish(callback2.messages[0][5].ResponseTopic, b"response", 1,
                       properties=callback2.messages[0][5])
 
+    def test_dollar_topics(self):
+      # $ topics. The specification says that a topic filter which starts with a wildcard does not match topic names that
+      # begin with a $.  Publishing to a topic which starts with a $ may not be allowed on some servers (which is entirely valid),
+      # so this test will not work and should be omitted in that case.
+      logging.info("$ topics test starting")
+      succeeded = True
+      try:
+        callback2.clear()
+        bclient.connect(host=host, port=port, cleanstart=True, keepalive=0)
+        bclient.subscribe([wildtopics[5]], [MQTTV5.SubscribeOptions(2)])
+        time.sleep(1) # wait for all retained messages, hopefully
+        callback2.clear()
+        bclient.publish("$"+topics[1], b"", 1, retained=False)
+        time.sleep(.2)
+        assert len(callback2.messages) == 0, callback2.messages
+        bclient.disconnect()
+      except:
+        traceback.print_exc()
+        succeeded = False
+      logging.info("$ topics test %s", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
 
 #    def test_publication_expiry(self):
 #      callback.clear()

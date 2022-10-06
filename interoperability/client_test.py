@@ -331,6 +331,28 @@ class Test(unittest.TestCase):
       print("unsubscribe tests", "succeeded" if succeeded else "failed")
       return succeeded
 
+    def test_dollar_topics(self):
+      # $ topics. The specification says that a topic filter which starts with a wildcard does not match topic names that
+      # begin with a $.  Publishing to a topic which starts with a $ may not be allowed on some servers (which is entirely valid),
+      # so this test will not work and should be omitted in that case.
+      print("$ topics test starting")
+      succeeded = True
+      try:
+        callback2.clear()
+        bclient.connect(host=host, port=port, cleansession=True, keepalive=0)
+        bclient.subscribe([wildtopics[5]], [2])
+        time.sleep(1) # wait for all retained messages, hopefully
+        callback2.clear()
+        bclient.publish("$"+topics[1], b"", 1, retained=False)
+        time.sleep(.2)
+        assert len(callback2.messages) == 0, callback2.messages
+        bclient.disconnect()
+      except:
+        traceback.print_exc()
+        succeeded = False
+      print("$ topics test", "succeeded" if succeeded else "failed")
+      self.assertEqual(succeeded, True)
+      return succeeded
 
 #    def test_keepalive(self):
 #      # keepalive processing.  We should be kicked off by the server if we don't send or receive any data, and don't send
@@ -350,29 +372,6 @@ class Test(unittest.TestCase):
 #        traceback.print_exc()
 #        succeeded = False
 #      print("Keepalive test", "succeeded" if succeeded else "failed")
-#      self.assertEqual(succeeded, True)
-#      return succeeded
-
-#    def test_dollar_topics(self):
-#      # $ topics. The specification says that a topic filter which starts with a wildcard does not match topic names that
-#      # begin with a $.  Publishing to a topic which starts with a $ may not be allowed on some servers (which is entirely valid),
-#      # so this test will not work and should be omitted in that case.
-#      print("$ topics test starting")
-#      succeeded = True
-#      try:
-#        callback2.clear()
-#        bclient.connect(host=host, port=port, cleansession=True, keepalive=0)
-#        bclient.subscribe([wildtopics[5]], [2])
-#        time.sleep(1) # wait for all retained messages, hopefully
-#        callback2.clear()
-#        bclient.publish("$"+topics[1], b"", 1, retained=False)
-#        time.sleep(.2)
-#        assert len(callback2.messages) == 0, callback2.messages
-#        bclient.disconnect()
-#      except:
-#        traceback.print_exc()
-#        succeeded = False
-#      print("$ topics test", "succeeded" if succeeded else "failed")
 #      self.assertEqual(succeeded, True)
 #      return succeeded
 

@@ -106,34 +106,47 @@ class Test(unittest.TestCase):
 
       bclient = mqtt_client.Client("myclientid2".encode("utf-8"))
       bclient.registerCallback(callback2)
-
-    def test_redelivery_on_reconnect(self):
-      # redelivery on reconnect. When a QoS 1 or 2 exchange has not been completed, the server should retry the
-      # appropriate MQTT packets
-      print("Redelivery on reconnect test starting")
-      succeeded = True
+    
+    def test_retained_messages(self):
+      qos0topic="fromb/qos 0"
+      qos1topic="fromb/qos 1"
+      wildcardtopic="fromb/+"
+      print("Retained message test starting")
+      succeeded = False
       try:
+        time.sleep(1)
+        # retained messages
         callback.clear()
-        callback2.clear()
-        bclient.connect(host=host, port=port, cleansession=False)
+        connack = aclient.connect(host=host, port=port, cleansession=True)
         time.sleep(1)
-        bclient.subscribe([topics[1]], [2])
+        assert connack.flags == 0x00 # Session present
+        aclient.publish(topics[1], b"qos 0", 0, retained=True)
+        aclient.publish(topics[2], b"qos 1", 1, retained=True)
         time.sleep(1)
-        bclient.pause() # stops responding to incoming publishes
-        bclient.publish(topics[1], b"", 1, retained=False)
+        aclient.subscribe([wildtopics[5]], [2])
         time.sleep(1)
-        bclient.disconnect()
-        assert len(callback2.messages) == 0, "length should be 0: %s" % callback2.messages
+        aclient.disconnect()
+
+        assert len(callback.messages) == 2
+
         time.sleep(1)
-        bclient.resume()
-        bclient.connect(host=host, port=port, cleansession=False)
-        time.sleep(3)
-        assert len(callback2.messages) == 1, "length should be 1: %s" % callback2.messages
-        bclient.disconnect()
+        # clear retained messages
+        callback.clear()
+        connack = aclient.connect(host=host, port=port, cleansession=True)
+        time.sleep(1)
+        assert connack.flags == 0x00 # Session present
+        aclient.publish(topics[1], b"", 0, retained=True)
+        aclient.publish(topics[2], b"", 1, retained=True)
+        time.sleep(1) # wait for QoS 2 exchange to be completed
+        aclient.subscribe([wildtopics[5]], [2])
+        time.sleep(1)
+        aclient.disconnect()
+
+        assert len(callback.messages) == 0, "callback messages is %s" % callback.messages
+        succeeded = True
       except:
         traceback.print_exc()
-        succeeded = False
-      print("Redelivery on reconnect test", "succeeded" if succeeded else "failed")
+      print("Retained message test", "succeeded" if succeeded else "failed")
       self.assertEqual(succeeded, True)
       return succeeded
 
